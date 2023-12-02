@@ -9,21 +9,33 @@ services:
   transactionsDb:
     restart: always
     ports:
-      - "6380:6379"
+      - "1436:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong(!)Password"
     volumes:
       - .${WEBAPP_STORAGE_HOME}/transactionsData:/data
+    
   customersDb:
     restart: always
     ports:
-      - "6381:6379"
+      - "1434:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong(!)Password"
     volumes:
       - .${WEBAPP_STORAGE_HOME}/customersData:/data
+    
   accountsDb:
     restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong(!)Password"
     ports:
-      - "6382:6379"
+      - "1435:1433"
     volumes:
       - .${WEBAPP_STORAGE_HOME}/accountsData:/data
+  
   transactions.api:
     image: ${DOCKER_REGISTRY-}transactionsapi
     environment:
