@@ -1,0 +1,38 @@
+﻿version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    
+  transactionsDb:
+    container_name: transactionsDb
+    image: mcr.microsoft.com/mssql/server:latest
+  customersDb:
+    container_name: customersDb
+    image: mcr.microsoft.com/mssql/server:latest
+  accountsDb:
+    container_name: accountsDb
+    image: mcr.microsoft.com/mssql/server:latest
+    
+  transactions.api:
+    container_name: transactions.api
+    build:
+      context: .
+      dockerfile: Src/Services/Transactions.API/Dockerfile
+  customers.api:
+    container_name: customers.api
+    build:
+      context: .
+      dockerfile: Src/Services/Customers.API/Dockerfile
+  accounts.api:
+    container_name: accounts.api
+    build:
+      context: .
+      dockerfile: Src/Services/Accounts.API/Dockerfile
+    
+  aggregateSpa:
+    container_name: aggregatespa
+    build:
+      context: .
+      dockerfile: Src/Aggregates/AggregateSpa/Dockerfile

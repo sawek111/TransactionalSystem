@@ -1,0 +1,71 @@
+﻿version: '3.8'
+
+services:
+  rabbitmq:
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  transactionsDb:
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - .${WEBAPP_STORAGE_HOME}/transactionsData:/data
+  customersDb:
+    restart: always
+    ports:
+      - "6381:6379"
+    volumes:
+      - .${WEBAPP_STORAGE_HOME}/customersData:/data
+  accountsDb:
+    restart: always
+    ports:
+      - "6382:6379"
+    volumes:
+      - .${WEBAPP_STORAGE_HOME}/accountsData:/data
+  transactions.api:
+    image: ${DOCKER_REGISTRY-}transactionsapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ConnectionStrings:OrderingConnectionString=Server=transactionsDb;Database=TransactionsDb;User Id=sa;Password=YourStrong(!)Password"
+      - "EventBusSettings:Host=rabbitmq:5672"
+      - "EventBusSettings:UserName=guest"
+      - "EventBusSettings:Password=guest"
+    depends_on:
+      - transactionsDb
+      - rabbitmq
+    ports:
+      - "8010:80"
+  customers.api:
+    image: ${DOCKER_REGISTRY-}customersapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ConnectionStrings:OrderingConnectionString=Server=customersDb;Database=CustomersDb;User Id=sa;Password=YourStrong(!)Password"
+      - "EventBusSettings:Host=rabbitmq:5672"
+      - "EventBusSettings:UserName=guest"
+      - "EventBusSettings:Password=guest"
+    depends_on:
+      - customersDb
+      - rabbitmq
+    ports:
+      - "8011:80"
+        
+  accounts.api:
+    image: ${DOCKER_REGISTRY-}accountsapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ConnectionStrings:OrderingConnectionString=Server=accountsDb;Database=AccountsDb;User Id=sa;Password=YourStrong(!)Password"
+      - "EventBusSettings:Host=rabbitmq:5672"
+      - "EventBusSettings:UserName=guest"
+      - "EventBusSettings:Password=guest"
+    depends_on:
+      - accountsDb
+      - rabbitmq
+    ports:
+      - "8012:80"
+    
+  aggregateSpa:
+    image: ${DOCKER_REGISTRY-}aggregatespa
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
