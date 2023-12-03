@@ -6,16 +6,7 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-  transactionsDb:
-    restart: always
-    ports:
-      - "1436:1433"
-    environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: "YourStrong(!)Password"
-    volumes:
-      - .${WEBAPP_STORAGE_HOME}/transactionsData:/data
-    
+
   customersDb:
     restart: always
     ports:
@@ -35,25 +26,22 @@ services:
       - "1435:1433"
     volumes:
       - .${WEBAPP_STORAGE_HOME}/accountsData:/data
-  
-  transactions.api:
-    image: ${DOCKER_REGISTRY-}transactionsapi
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - "ConnectionStrings:OrderingConnectionString=Server=transactionsDb;Database=TransactionsDb;User Id=sa;Password=YourStrong(!)Password"
-      - "EventBusSettings:Host=rabbitmq:5672"
-      - "EventBusSettings:UserName=guest"
-      - "EventBusSettings:Password=guest"
-    depends_on:
-      - transactionsDb
-      - rabbitmq
+    
+  transactionsDb:
+    restart: always
     ports:
-      - "8010:80"
+      - "1436:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong(!)Password"
+    volumes:
+        - .${WEBAPP_STORAGE_HOME}/transactionsData:/data
+
   customers.api:
     image: ${DOCKER_REGISTRY-}customersapi
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - "ConnectionStrings__CustomersDb=Server=customersDb,1433;Database=CustomersDb;User Id=sa;Password=YourStrong(!)Password;TrustServerCertificate=True;"
+      - "ConnectionStrings:CustomersDb=Server=customersDb;Database=CustomersDb;User Id=sa;Password=YourStrong(!)Password;TrustServerCertificate=True"
       - "EventBusSettings:Host=rabbitmq:5672"
       - "EventBusSettings:UserName=guest"
       - "EventBusSettings:Password=guest"
@@ -61,13 +49,13 @@ services:
       - customersDb
       - rabbitmq
     ports:
-      - "8011:8080"
+      - "8014:8080"
         
   accounts.api:
     image: ${DOCKER_REGISTRY-}accountsapi
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - "ConnectionStrings:OrderingConnectionString=Server=accountsDb;Database=AccountsDb;User Id=sa;Password=YourStrong(!)Password"
+      - "ConnectionStrings:AccountsDb=Server=accountsDb;Database=AccountsDb;User Id=sa;Password=YourStrong(!)Password;TrustServerCertificate=True;"
       - "EventBusSettings:Host=rabbitmq:5672"
       - "EventBusSettings:UserName=guest"
       - "EventBusSettings:Password=guest" 
@@ -75,9 +63,34 @@ services:
       - accountsDb
       - rabbitmq
     ports:
-      - "8012:80"
+      - "8012:8080"
+    
+  transactions.api:
+    image: ${DOCKER_REGISTRY-}transactionsapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ConnectionStrings:TransactionsDb=Server=transactionsDb;Database=TransactionsD;User Id=sa;Password=YourStrong(!)Password;TrustServerCertificate=True;"
+      - "EventBusSettings:Host=rabbitmq:5672"
+      - "EventBusSettings:UserName=guest"
+      - "EventBusSettings:Password=guest"
+    depends_on:
+      - transactionsDb
+      - rabbitmq
+    ports:
+      - "8010:8080"
     
   aggregateSpa:
     image: ${DOCKER_REGISTRY-}aggregatespa
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - "EventBusSettings:Host=rabbitmq:5672"
+      - "EventBusSettings:UserName=guest"
+      - "EventBusSettings:Password=guest"
+      - "EndpointsSettings:CustomersHost=http://customers.api:8014"
+      - "EndpointsSettings:TransactionsHost=http://transactions.api:8010"
+    depends_on:
+      - customers.api
+      - transactions.api
+      - rabbitmq
+    ports:
+      - "8013:8080"

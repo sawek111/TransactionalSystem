@@ -61,12 +61,21 @@ app.MapGet(
     });
 
 app.MapPost(
-    "/account", async (CreateAccountRequest request, IBus bus, EventBusSettings settings) =>
+    "/account", async (CreateAccountRequest request, IBus bus, ICustomerService customerService, EventBusSettings settings) =>
     {
         // TODO: TO CQRS
+        var customers = (await customerService.GetCustomers()).ToList();
+        
+        // TODO replace with endpoint
+        if (customers.TrueForAll(x => x.Id != request.CustomerId))
+        {
+            return Results.NotFound("Customer not found");
+        }
+        
         var newAccountId = Guid.NewGuid();
         var rabbitMqUri = new Uri($"rabbitmq://{settings.Host}");
 
+        
         var accountCreationRequestedUri = new Uri(rabbitMqUri, AccountCreationRequested.TopicName);
         var transactionCreationRequestedUri = new Uri(rabbitMqUri, TransactionCreationRequested.TopicName);
 
