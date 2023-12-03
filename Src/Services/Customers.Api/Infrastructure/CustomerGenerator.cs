@@ -5,7 +5,7 @@ using MassTransit;
 
 namespace Customers.Api.Infrastructure;
 
-public sealed class CustomerGenerator(ICustomersDbContext customersContext, IPublishEndpoint publishEndpoint) : ICustomerGenerator
+public sealed class CustomerGenerator(ICustomersDbContext customersContext, IBus bus) : ICustomerGenerator
 {
     // TODO replace with user ingterface
     public async Task Generate(int count)
@@ -16,7 +16,7 @@ public sealed class CustomerGenerator(ICustomersDbContext customersContext, IPub
         {
             foreach (var customer in customers)
             {
-                await publishEndpoint.Publish(new CustomerCreatedEvent(customer.Name, customer.Id));
+                await bus.Publish(new CustomerCreatedEvent(customer.Name, customer.Id));
             }
         }
     }

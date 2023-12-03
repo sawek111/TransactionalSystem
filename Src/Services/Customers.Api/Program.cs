@@ -1,4 +1,6 @@
 using Customers.Api.Infrastructure;
+using Customers.Contracts;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using TransactionalSystem.Messaging;
 
@@ -26,14 +28,23 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapGet(
-    "customers", async (ICustomersDbContext dbContext, ICustomerGenerator generator) =>
+    "customers", async (ICustomersDbContext customersDbContext, ICustomerGenerator generator) =>
     {
-        if (!dbContext.Customers.Any())
+        if (!customersDbContext.Customers.Any())
         {
            await generator.Generate(ICustomersDbContext.InitCount);
         }
         
-        return Results.Ok(await dbContext.Customers.ToListAsync());
+        return Results.Ok(await customersDbContext.Customers.ToListAsync());
+    });
+
+app.MapDelete(
+    "customers", async (ICustomersDbContext customersDbContext, IBus bus) =>
+    {
+        customersDbContext.Customers.RemoveRange(customersDbContext.Customers);
+        var removedAmount = await customersDbContext.SaveChangesAsync();
+        await bus.Publish(new AllCustomersDeletedEvent());
+        return Results.Ok(removedAmount);
     });
 
 app.Run();
