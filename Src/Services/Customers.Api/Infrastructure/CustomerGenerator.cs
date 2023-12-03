@@ -25,13 +25,14 @@ public sealed class CustomerGenerator(ICustomersDbContext customersContext, IBus
     {
         var userGenerator = new Faker<Customer>()
             .RuleFor(c => c.Email, f => f.Internet.Email())
-            .RuleFor(c => c.Name, f => f.Name.FullName());
+            .RuleFor(c => c.LastName, f => f.Name.LastName())
+            .RuleFor(c => c.Name, f => f.Name.FirstName());
         var fakedCustomers = userGenerator.Generate(count);
         var customers = new Customer[count];
         for (var i = 0; i < count; i++)
         {
             var faked = fakedCustomers[i];
-            var customer = Customer.Create(faked.Name, faked.Email);
+            var customer = Customer.Create(faked.Name, faked.LastName, faked.Email);
             customers[i] = customer;
         }
         customersContext.Customers.AddRange(customers);
