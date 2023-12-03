@@ -7,13 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accounts.Api.Consumers;
 
-public sealed class AllCustomersDeletedConsumer(IAccountsDbContext accountsDbContext, IBus bus) : IConsumer<CustomerCreatedEvent>
+public sealed class AllCustomersDeletedConsumer(IAccountsDbContext accountsDbContext, IBus bus) : IConsumer<AllCustomersDeletedEvent>
 {
-    public async Task Consume(ConsumeContext<CustomerCreatedEvent> context)
+    public async Task Consume(ConsumeContext<AllCustomersDeletedEvent> context)
     {
-        var customer = Customer.Create(context.Message.Id, context.Message.Name);
+        accountsDbContext.Customers.RemoveRange(accountsDbContext.Customers);
         var accountsIds = await accountsDbContext.Accounts.Select(x => x.Id).ToListAsync();
-        accountsDbContext.Customers.Add(customer);
         await accountsDbContext.SaveChangesAsync();
         await bus.Publish(new AccountsDeletedEvent(accountsIds));
     }

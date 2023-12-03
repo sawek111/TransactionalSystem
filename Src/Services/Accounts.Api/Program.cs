@@ -1,13 +1,17 @@
 using Accounts.Api;
 using Accounts.Api.Consumers;
 using Accounts.Api.Infrastructure;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using TransactionalSystem.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddMessagingInfrastructure(builder.Configuration, typeof(CustomerCreatedConsumer).Assembly);
+builder.Services.AddMessagingInfrastructure(builder.Configuration, typeof(CustomerCreatedConsumer).Assembly, config =>
+{
+    config.AddActivities(typeof(CreateAccountActivity).Assembly);
+});
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<IAccountsDbContext, AccountsDbContext>(
     options =>

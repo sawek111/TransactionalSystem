@@ -9,8 +9,10 @@ public class CreateTransactionActivity(ITransactionsDbContext transactionsDbCont
 {
     public async Task<ExecutionResult> Execute(ExecuteContext<TransactionCreationRequested> context)
     {
-        var transaction = Transaction.Create(context.Arguments.AccountId, context.Arguments.value);
+        var transaction = Transaction.Create(context.Arguments.AccountId, context.Arguments.Value);
+        transactionsDbContext.Accounts.Add(new Account { Id = context.Arguments.AccountId });
         transactionsDbContext.Transactions.Add(transaction);
+        // TODO - for presentation: throw new Exception();
         await transactionsDbContext.SaveChangesAsync();
         
         return context.Completed(new TransactionCreationFailed(TransactionId: transaction.Id));

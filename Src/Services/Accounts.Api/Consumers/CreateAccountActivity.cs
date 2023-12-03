@@ -15,7 +15,7 @@ public class CreateAccountActivity(IAccountsDbContext accountsDbContext) : IActi
         
         return context.Arguments.InitialCredit <= 0 
             ? context.Terminate() 
-            : context.Completed(new AccountCreationFailed(AccountId: account.Id));
+            : context.Completed<AccountCreationFailed>(new AccountCreationFailed(AccountId: account.Id));
     }
 
     public async Task<CompensationResult> Compensate(CompensateContext<AccountCreationFailed> context)
@@ -25,6 +25,8 @@ public class CreateAccountActivity(IAccountsDbContext accountsDbContext) : IActi
         {
             accountsDbContext.Accounts.Remove(account);
         }
+
+        await accountsDbContext.SaveChangesAsync();
 
         return context.Compensated();
     }
