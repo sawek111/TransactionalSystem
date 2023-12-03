@@ -9,6 +9,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MassTransit" Version="8.1.2" />
+        <PackageReference Include="MassTransit.Abstractions" Version="8.1.2" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
     </ItemGroup>
@@ -17,6 +19,11 @@
       <Content Include="..\..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Services\Accounts.Contracts\Accounts.Contracts.csproj" />
+      <ProjectReference Include="..\..\Services\Transactions.Contracts\Transactions.Contracts.csproj" />
     </ItemGroup>
 
 </Project>

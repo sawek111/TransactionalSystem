@@ -1,50 +1,53 @@
-var builder = WebApplication.CreateBuilder(args);
+using Accounts.Contracts;
+using Accounts.Contracts.Requests;
+using MassTransit;
+using TransactionalSystem.Messaging;
+using Transactions.Contracts;
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMessagingInfrastructure(builder.Configuration, typeof(Program).Assembly);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        c.RoutePrefix = string.Empty;
-    });
+    app.UseSwaggerUI(
+        c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            c.RoutePrefix = string.Empty;
+        });
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.MapPost(
+    "/account", async (CreateAccountRequest request, IBus bus, EventBusSettings settings) =>
+    {
+        // TODO: TO CQRS
+        var newAccountId = Guid.NewGuid();
+        var rabbitMqUri = new Uri($"rabbitmq://{settings.Host}");
+        
+        var accountCreationRequestedUri = new Uri(rabbitMqUri, AccountCreationRequested.TopicName);
+        var transactionCreationRequestedUri = new Uri(rabbitMqUri, TransactionCreationRequested.TopicName);
 
-app.MapGet(
-        "/weatherforecast", () =>
-        {
-            var forecast = Enumerable.Range(1, 5).Select(
-                    index =>
-                        new WeatherForecast
-                        (
-                            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                            Random.Shared.Next(-20, 55),
-                            summaries[Random.Shared.Next(summaries.Length)]
-                        ))
-                .ToArray();
-            return forecast;
-        })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+        var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
+        routingSlipBuilder.AddActivity(
+            AccountCreationRequested.TopicName, accountCreationRequestedUri, new AccountCreationRequested(newAccountId, request.CustomerId, request.InitialCredit));
+        routingSlipBuilder.AddActivity(
+            TransactionCreationRequested.TopicName, transactionCreationRequestedUri, new TransactionCreationRequested(
+                newAccountId,
+                request.InitialCredit));
 
+        var routingSlip = routingSlipBuilder.Build();
+        await bus.Execute(routingSlip);
+        return Results.Ok();
+    });
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
