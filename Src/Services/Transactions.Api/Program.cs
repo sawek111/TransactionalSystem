@@ -1,5 +1,4 @@
 using MassTransit;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TransactionalSystem.Messaging;
 using Transactions.Api.Consumers;
@@ -41,7 +40,7 @@ app.MapGet("/balances", async (Guid[] customerIds, ITransactionsDbContext transa
             {
                 CustomerId = group.Key,
                 Balance = group.Sum(t => t.Value),
-                Transactions = group.Select(t => new TransactionsResponse(t.Id, t.AccountId)).ToArray()
+                Transactions = group.Select(t => new TransactionsResponse(t.Id, t.AccountId, t.Value)).ToArray()
             }).ToListAsync();
     return Results.Ok(result);
 });
