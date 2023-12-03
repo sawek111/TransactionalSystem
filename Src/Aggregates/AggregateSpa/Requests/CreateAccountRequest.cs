@@ -1,3 +1,3 @@
-namespace Accounts.Contracts.Requests;
+namespace AggregateSpa.Requests;
 
 public sealed record CreateAccountRequest(Guid CustomerId, decimal InitialCredit);

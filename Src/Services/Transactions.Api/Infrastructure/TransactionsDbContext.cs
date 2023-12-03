@@ -29,6 +29,7 @@ public class TransactionsDbContext : DbContext, ITransactionsDbContext
         modelBuilder.Entity<Transaction>(entity =>
         {
             entity.HasKey(t => t.Id);
+            entity.Property(t => t.CustomerId).IsRequired();
         });
     }
 }

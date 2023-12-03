@@ -1,8 +1,10 @@
 using MassTransit;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TransactionalSystem.Messaging;
 using Transactions.Api.Consumers;
 using Transactions.Api.Infrastructure;
+using Transactions.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,4 +30,19 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapGet("/balances", async (Guid[] customerIds, ITransactionsDbContext transactionContext) =>
+{
+    var result = await transactionContext.Transactions
+        .Where(x => customerIds.Contains(x.CustomerId))
+        .GroupBy(t => t.CustomerId)
+        .Select(
+            group => new BalanceResponse
+            {
+                CustomerId = group.Key,
+                Balance = group.Sum(t => t.Value),
+                Transactions = group.Select(t => new TransactionsResponse(t.Id, t.AccountId)).ToArray()
+            }).ToListAsync();
+    return Results.Ok(result);
+});
 app.Run();
