@@ -53,7 +53,7 @@ app.MapGet(
         foreach (var customer in customers)
         {
             var balance = balancesDictionary.TryGetValue(customer.Id, out var value) ? value : BalanceResponse.Create(customer.Id, 0.0m, Enumerable.Empty<TransactionsResponse>());
-            var combinedInfo = new DataResponse(customer.Id, customer.Name, customer.Surname, balance.Balance, balance.Transactions);
+            var combinedInfo = new DataResponse(customer.Id, customer.Name, customer.LastName, balance.Balance, balance.Transactions);
             combinedList.Add(combinedInfo);
         }
 
