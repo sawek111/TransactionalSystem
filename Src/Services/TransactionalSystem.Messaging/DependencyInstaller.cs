@@ -11,7 +11,8 @@ public static class Installer
     /// <summary>
     /// Requires additional configuration declared in RabbitSettings
     /// </summary>
-    public static void AddMessagingInfrastructure(this IServiceCollection services, ConfigurationManager configuration, Assembly? assembly = null)
+    public static void AddMessagingInfrastructure(this IServiceCollection services, ConfigurationManager configuration, Assembly? assembly = null, 
+        Action<IBusRegistrationConfigurator> configureMassTransit = null)
     {
         
         services.AddOptions<EventBusSettings>()
@@ -27,6 +28,7 @@ public static class Installer
             }
             
             config.SetKebabCaseEndpointNameFormatter();
+            configureMassTransit?.Invoke(config);
             
             var rabbitMqUri = new Uri($"rabbitmq://{settings!.UserName}:{settings.Password}@{settings!.Host}");
             config.UsingRabbitMq((ctx, cfg) => {
