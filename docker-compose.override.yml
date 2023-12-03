@@ -53,7 +53,7 @@ services:
     image: ${DOCKER_REGISTRY-}customersapi
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - "ConnectionStrings:OrderingConnectionString=Server=customersDb;Database=CustomersDb;User Id=sa;Password=YourStrong(!)Password"
+      - "ConnectionStrings__CustomersDb=Server=customersDb,1433;Database=CustomersDb;User Id=sa;Password=YourStrong(!)Password;TrustServerCertificate=True;"
       - "EventBusSettings:Host=rabbitmq:5672"
       - "EventBusSettings:UserName=guest"
       - "EventBusSettings:Password=guest"
@@ -61,7 +61,7 @@ services:
       - customersDb
       - rabbitmq
     ports:
-      - "8011:80"
+      - "8011:8080"
         
   accounts.api:
     image: ${DOCKER_REGISTRY-}accountsapi
@@ -70,7 +70,7 @@ services:
       - "ConnectionStrings:OrderingConnectionString=Server=accountsDb;Database=AccountsDb;User Id=sa;Password=YourStrong(!)Password"
       - "EventBusSettings:Host=rabbitmq:5672"
       - "EventBusSettings:UserName=guest"
-      - "EventBusSettings:Password=guest"
+      - "EventBusSettings:Password=guest" 
     depends_on:
       - accountsDb
       - rabbitmq
