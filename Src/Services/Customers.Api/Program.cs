@@ -32,8 +32,8 @@ app.MapGet(
         {
            await generator.Generate(ICustomersDbContext.InitCount);
         }
-
-        return Results.Ok();
+        
+        return Results.Ok(await dbContext.Customers.ToListAsync());
     });
 
 app.Run();
