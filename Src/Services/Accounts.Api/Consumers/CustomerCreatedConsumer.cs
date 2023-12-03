@@ -15,16 +15,4 @@ public sealed class CustomerCreatedConsumer(IAccountsDbContext accountsDbContext
         accountsDbContext.Customers.Add(customer);
         await accountsDbContext.SaveChangesAsync();
     }
-
-    
-    public async Task Consume(ConsumeContext<AllCustomersDeletedEvent> context)
-    {
-        
-        
-        var customer = Customer.Create(context.Message.Id, context.Message.Name);
-        var accountsIds = await accountsDbContext.Accounts.Select(x => x.Id).ToListAsync();
-        accountsDbContext.Customers.Add(customer);
-        await accountsDbContext.SaveChangesAsync();
-        await bus.Publish(new AccountsDeletedEvent(accountsIds));
-    }
 }
