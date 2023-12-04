@@ -21,7 +21,11 @@ var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<IAccountsDbContext>() as AccountsDbContext;
-dbContext?.Database.Migrate();
+var pendingMigrations = dbContext!.Database.GetPendingMigrations();
+if (pendingMigrations.Any())
+{
+    dbContext.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {

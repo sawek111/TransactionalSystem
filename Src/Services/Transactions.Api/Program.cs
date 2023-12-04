@@ -20,8 +20,12 @@ builder.Services.AddDbContext<ITransactionsDbContext, TransactionsDbContext>(
 var app = builder.Build();
 using var scope = app.Services.CreateScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<ITransactionsDbContext>() as TransactionsDbContext;
+var pendingMigrations = dbContext!.Database.GetPendingMigrations();
 
-dbContext?.Database.Migrate();
+if (pendingMigrations.Any())
+{
+    dbContext.Database.Migrate();
+}
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
