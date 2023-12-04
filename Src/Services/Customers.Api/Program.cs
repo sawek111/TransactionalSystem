@@ -38,6 +38,13 @@ app.MapGet(
         return Results.Ok(await customersDbContext.Customers.ToListAsync());
     });
 
+app.MapGet(
+    "customers/{customerId}", async (Guid customerId, ICustomersDbContext customersDbContext) =>
+    {
+        var customer = await customersDbContext.Customers.FindAsync(customerId);
+        return customer is not null ? Results.Ok(customer) : Results.NotFound(customerId);
+    });
+
 app.MapDelete(
     "customers", async (ICustomersDbContext customersDbContext, IBus bus) =>
     {

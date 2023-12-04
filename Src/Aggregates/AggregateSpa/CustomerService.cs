@@ -17,4 +17,17 @@ public sealed class CustomerService(HttpClient httpClient) : ICustomerService
             return Enumerable.Empty<CustomerResponse>();
         }
     }
+    
+    public async Task<CustomerResponse?> GetCustomer(Guid customerId)
+    {
+        var uri = $"customers/{customerId}";
+        try
+        {
+            return await httpClient.GetFromJsonAsync<CustomerResponse>(uri);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
 }

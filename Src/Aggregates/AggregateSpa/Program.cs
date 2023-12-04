@@ -60,6 +60,28 @@ app.MapGet(
         return Results.Ok(combinedList);
     });
 
+
+app.MapGet(
+    "data/{customerId}", async (Guid customerId, ICustomerService customerService, ITransactionsService transactionsService) =>
+    {
+        // TODO improve after presentation
+        var customer = await customerService.GetCustomer(customerId);
+        if (customer is null)
+        {
+            return Results.NotFound(customerId);
+        }
+        var balances = await transactionsService.GetBalancesWithHistory(new List<Guid>() { customerId });
+        if(balances.Skip(1).Any())
+        {
+            return Results.Problem("To many balances");
+        }
+        var balance = balances.FirstOrDefault() ?? BalanceResponse.Create(customer.Id, 0.0m, Enumerable.Empty<TransactionsResponse>());
+        var combinedInfo = new DataResponse(customer.Id, customer.Name, customer.LastName, balance.Balance, balance.Transactions);
+        
+        return Results.Ok(combinedInfo);
+    });
+
+
 app.MapPost(
     "/account", async (CreateAccountRequest request, IBus bus, ICustomerService customerService, EventBusSettings settings) =>
     {
