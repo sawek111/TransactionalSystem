@@ -50,7 +50,7 @@ services:
       - rabbitmq
     ports:
       - "8014:8080"
-        
+
   accounts.api:
     image: ${DOCKER_REGISTRY-}accountsapi
     environment:
@@ -62,8 +62,6 @@ services:
     depends_on:
       - accountsDb
       - rabbitmq
-    ports:
-      - "8012:8080"
     
   transactions.api:
     image: ${DOCKER_REGISTRY-}transactionsapi
@@ -76,8 +74,6 @@ services:
     depends_on:
       - transactionsDb
       - rabbitmq
-    ports:
-      - "8010:8080"
     
   aggregateSpa:
     image: ${DOCKER_REGISTRY-}aggregatespa
@@ -86,8 +82,8 @@ services:
       - "EventBusSettings:Host=rabbitmq:5672"
       - "EventBusSettings:UserName=guest"
       - "EventBusSettings:Password=guest"
-      - "EndpointsSettings:CustomersHost=http://customers.api:8014"
-      - "EndpointsSettings:TransactionsHost=http://transactions.api:8010"
+      - "EndpointsSettings:CustomersHost=http://customers.api:8080"
+      - "EndpointsSettings:TransactionsHost=http://transactions.api:8080"
     depends_on:
       - customers.api
       - transactions.api
